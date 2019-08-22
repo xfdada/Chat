@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no" />
+    <title>沟通中</title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/themes.css?v=2017129">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/h5app.css">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/fonts/iconfont.css?v=2016070717">
+    <script src="__STATIC__/newcj/js/jquery.min.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible_css.debug.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible.debug.js"></script>
+    <style>
+        .chatimg{
+            width: 400px;
+        }
+    </style>
+</head>
+<body ontouchstart>
+<div class='fui-page-group'>
+<div class='fui-page chatDetail-page'>
+    <div class="chat-header flex">
+        <i class="icon icon-toleft t-48"></i>
+        <span class="shop-titlte t-30">{$to_info.name}</span>
+        <span class="shop-online t-26"></span>
+        <span class="into-shop">进店</span>
+    </div>
+    <div class="fui-content navbar" style="padding:1.2rem 0 1.35rem 0;">
+        <div class="chat-content">
+            <p style="display: none;text-align: center;padding-top: 0.5rem" id="more"><a>加载更多</a></p>
+            <p class="chat-time"><span class="time">2019-8-21</span></p>
+        </div>
+    </div>
+    <div class="fix-send flex footer-bar">
+        <i class="icon icon-emoji1 t-50"></i>
+        <input class="send-input t-28" maxlength="200">
+        <input type="file" id="file" name="file" hidden>
+        <i class="icon icon-add img_s t-50"  style="color: #888;"></i>
+        <span class="send-btn">发送</span>
+    </div>
+</div>
+</div>
+
+<script>
+    var API = 'http://chat.com/api/chat/';
+    var from = {$from};
+    var tos = {$to};
+    var data = {};
+     var ws =  new WebSocket("ws://192.168.1.106:4399");
+      ws.onmessage = function(e){
+          var msgs = JSON.parse(e.data);
+          switch (msgs.type) {
+              case 'init':
+                  data['type'] = "bind"
+                  data["fromid"] = from;
+                  data["todi"] = tos;
+                  var msg = JSON.stringify(data);
+                  ws.send(msg);
+                  console.log(data['type']);
+                  return;
+              case 'text':
+                  if(msgs.fromid==tos){
+                      var to ='   <div class="chat-text section-left flex">\n' +
+                          '            <span class="char-img" style="background-image: url({$to_info.icon})"></span>\n' +
+                          '            <span class="text"><i class="icon icon-sanjiao4 t-32"></i>'+msgs.msg+'</span>\n' +
+                          '        </div>';
+                      $(".chat-content").append(to);
+                      $(".chat-content").scrollTop(20000);
+                  }
+                  return;
+              case 'save':
+                  $.post(
+                        API+"save_msg",{msg:e.data},function(res){}
+                  );
+                  return;
+              case 'img':
+                  var to ='   <div class="chat-text section-left flex">\n' +
+                      '            <span class="char-img" style="background-image: url({$to_info.icon})"></span>\n' +
+                      '            <span class="text"><i class="icon icon-sanjiao4 t-32"></i><img class="chatimg" src="'+msgs.msg+'"/></span>\n' +
+                      '        </div>';
+                  $(".chat-content").append(to);
+                  $(".chat-content").scrollTop(20000);
+          }
+    }
+     $(".send-btn").click(function(){
+         var text = $(".send-input").val();
+         data['type'] = "text"
+          data["fromid"] = from;
+          data["toid"] = tos;
+          data["msg"] = text;
+         var msg = JSON.stringify(data);
+         ws.send(msg);
+         $(".send-input").val("");
+         var my = '<div class="chat-text section-right flex">\n' +
+             '            <span class="text"><i class="icon icon-sanjiao3 t-32"></i>'+text+'</span>\n' +
+             '            <span class="char-img" style="background-image: url({$from_info.icon})"></span>\n' +
+             '           </div>';
+         $(".chat-content").append(my);
+         $(".chat-content").scrollTop(20000);
+     })
+    $(".img_s").click(function(){
+        $("#file").click();
+    })
+    $("#file").change(function (){
+        var formdata =  new FormData();
+        formdata.append('formid',from);
+        formdata.append('toid',tos);
+        formdata.append('file',$('#file')[0].files[0]);
+        $.ajax({
+            type: 'POST',
+            url: API+'upload',
+            data: formdata,
+            dataType:'json',
+            processData: false,   // jQuery不要去处理发送的数据
+            contentType: false,   // jQuery不要去设置Content-Type请求头
+            success: function(res){
+                var ht = ' <div class="chat-text section-right flex">\n' +
+                    '            <span class="text"><i class="icon icon-sanjiao3 t-32"></i><img class="chatimg" src="'+ res.data.url+'"/></span>\n' +
+                    '            <span class="char-img" style="background-image: url({$from_info.icon})"></span>\n' +
+                    '           </div>';
+                $(".chat-content").append(ht);
+                $(".chat-content").scrollTop(20000);
+                var data = {};
+                data['fromid'] = from;
+                data['toid'] = tos;
+                data['type'] = 'img';
+                data['msg'] = res.data.url;
+                var msg = JSON.stringify(data);
+                ws.send(msg);
+            }
+        });
+    })
+    function getMsg() {
+        $.post(API+'getMsg',{from:from,to:tos},function(res){
+            for (var i=0;i<(res.data).length;i++) {
+                var msg = '';
+                if(res.data[i].type===1){
+                    msg = res.data[i].content;
+                }else{
+                    msg = '<img class="chatimg" src ="'+res.data[i].content+'"/>';
+                }
+                var id = res.data[i].fromid;
+                if (id===from){
+                    var ht = ' <div class="chat-text section-right flex">\n' +
+                        '            <span class="text"><i class="icon icon-sanjiao3 t-32"></i>'+msg+'</span>\n' +
+                        '            <span class="char-img" style="background-image: url({$from_info.icon})"></span>\n' +
+                        '           </div>';
+                    $(".chat-content").append(ht);
+                }
+                else{
+                    var ht = ' <div class="chat-text section-left flex">\n' +
+                        '            <span class="char-img" style="background-image: url({$to_info.icon})"></span>\n' +
+                        '            <span class="text"><i class="icon icon-sanjiao4 t-32"></i>'+msg+'</span>\n' +
+                        '        </div>';
+                    $(".chat-content").append(ht);
+                }
+            }
+            $(".chat-content").scrollTop(20000);
+        })
+    }
+    getMsg();
+
+</script>
+</body>
+</html>
