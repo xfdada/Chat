@@ -11,6 +11,9 @@ use think\response\Json;
 class Chat extends Controller
 {
 
+    /**
+     * 查询聊天记录，desc排序显示最新的10条消息  手动分页
+     */
     public function getMsg(){
         $page = 1;
         $row = 10;
@@ -18,11 +21,14 @@ class Chat extends Controller
         $to = input("to",11);
         $froms = Db::table('message')->where('fromid=:from and toid=:toid||fromid=:tos and toid=:froms',['from'=>$from,'toid'=>$to,'tos'=>$to,'froms'=>$from])
             ->order("time desc")->limit(($page-1)*$row,$row)->select();
-        $new= array_column($froms,'id');
-        array_multisort($new,SORT_ASC,$froms);
+        $new= array_column($froms,'id');//选中id列为一个数组
+        array_multisort($new,SORT_ASC,$froms);//以数组中$new倒序的方式对$froms进行排序
         return $this->ToJson($froms,'',1);
     }
 
+    /**
+     * 保存聊天记录
+     */
     public function save_msg(Request $request)
     {
         if ($request->isAjax()) {
@@ -46,49 +52,105 @@ class Chat extends Controller
         }
         return json_encode(['msg' => 'not Ajax request', 'code' => 5]);
     }
-
+    /**
+     * 获取用户的昵称
+     */
     private function getNname($id)
     {
         $name = Db::table('user')->field('name')->find($id);
         return $name['name'];
     }
 
-    public function upload(Request $request)
+    /**
+     * 上传图片 并将数据保存到数据库中
+     */
+    public function img(Request $request)
     {
         $file = request()->file('file');
-        $name = $this->img($file);
+        if ($file) {
+            $info = $file->move(ROOT_PATH . 'public' . DS . 'uploads/img/');
+            if ($info) {
+                $name = $info->getSaveName();
+            } else {
+                // 上传失败获取错误信息
+                return $this->ToJson('',$file->getError(),5);
+            }
+        }
         $info = input("post.");
         $data = [
             'fromid' => $info['formid'],
             'from_name' => $this->getNname($info['formid']),
             'toid' => $info['toid'],
             'to_name' => $this->getNname($info['toid']),
-            'content' => 'http://' . $_SERVER['HTTP_HOST'] . '/uploads/' . $name,
+            'content' => 'http://' . $_SERVER['HTTP_HOST'] . '/uploads/img/' . $name,
             'is_read' => 2,
             'type' => 2,
             'time' => time(),
         ];
         $res = Db::table('message')->insert($data);
         if ($res){
-            return $this->ToJson(['url'=>'http://' . $_SERVER['HTTP_HOST'] . '/uploads/' . $name],'',1);
+            return $this->ToJson(['url'=>'http://' . $_SERVER['HTTP_HOST'] . '/uploads/img/' . $name],'',1);
         }
         return $this->ToJson('','发送图片失败',5);
     }
 
-    public function img($file)
-    {
-        if ($file) {
-            $info = $file->move(ROOT_PATH . 'public' . DS . 'uploads');
-            if ($info) {
-                return $info->getSaveName();
-            } else {
-                // 上传失败获取错误信息
-                echo $file->getError();
-            }
-        }
+    /**
+     * 视频上传
+     * @param $file
+     * @return mixed
+     */
 
+    public function video(){
+        $video = $_FILES['file'];
+//        dump($video);exit;
+        $mime ='video/mp4';
+        if($video['error']!=0){
+            return $this->ToJson('','上传出错',5);
+        }
+        if ($video['type']!=$mime){
+            return $this->ToJson('','只支持MP4格式视频上传',5);
+        }
+        if($video['size']>200*1024*1024){
+            return $this->ToJson('','视频文件上传大于50MB',5);
+        }
+        if(strtolower(strrchr($video['name'],'.'))!='.mp4'){
+            return $this->ToJson('','上传文件格式错误',5);
+        }
+        $tmp = $video['tmp_name'];
+        $path= ROOT_PATH . 'public' . DS . 'uploads/video/'.date('Ymd');
+        if(!is_dir($path)){
+            mkdir('uploads/video/'.date('Ymd'),0777);
+        }
+        $path =  ROOT_PATH . 'public' . DS . 'uploads/video/'.date('Ymd');
+        $name = md5(date('YmdHis')).'.mp4';
+        if(!move_uploaded_file($tmp,$path.'/'.$name)){
+            return $this->ToJson('','上传失败',5);
+        }
+        $src = '/uploads/video/'.date('Ymd').'/'.$name;
+        $info = input("post.");
+        $data = [
+            'fromid' => $info['formid'],
+            'from_name' => $this->getNname($info['formid']),
+            'toid' => $info['toid'],
+            'to_name' => $this->getNname($info['toid']),
+            'content' => 'http://' . $_SERVER['HTTP_HOST'] . $src,
+            'is_read' => 2,
+            'type' => 3,
+            'time' => time(),
+        ];
+        $res = Db::table('message')->insert($data);
+        if ($res){
+            return $this->ToJson($src,'',1);
+        }
     }
 
+    /**
+     * json格式化
+     * @param $data
+     * @param $msg
+     * @param $code
+     * @return Json
+     */
     public function ToJson($data,$msg,$code){
         $data = ['data'=>$data,'msg'=>$msg,'code'=>$code];
         return json($data);

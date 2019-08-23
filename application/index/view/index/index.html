@@ -33,9 +33,11 @@
     </div>
     <div class="fix-send flex footer-bar">
         <i class="icon icon-emoji1 t-50"></i>
-        <input class="send-input t-28" maxlength="200">
-        <input type="file" id="file" name="file" hidden>
+        <input class="send-input t-28" maxlength="180">
+        <input type="file" id="img" name="img" hidden>
+        <input type="file" id="video" name="video" hidden>
         <i class="icon icon-add img_s t-50"  style="color: #888;"></i>
+        <i class="icon icon-add video_s t-50"  style="color: #888;"></i>
         <span class="send-btn">发送</span>
     </div>
 </div>
@@ -84,6 +86,7 @@
     }
      $(".send-btn").click(function(){
          var text = $(".send-input").val();
+         if(text==''){return;}
          data['type'] = "text"
           data["fromid"] = from;
           data["toid"] = tos;
@@ -100,22 +103,42 @@
      })
     $(".img_s").click(function(){
         $("#file").click();
-    })
+    });
     $("#file").change(function (){
+       upload('img','img')
+    });
+    $(".video_s").click(function(){
+        $("#video").click();
+    });
+    $("#video").change(function (){
+        upload('video','video');
+    });
+    function upload(id,type){
         var formdata =  new FormData();
         formdata.append('formid',from);
         formdata.append('toid',tos);
-        formdata.append('file',$('#file')[0].files[0]);
+        formdata.append('type',type);
+        formdata.append('file',$('#'+id)[0].files[0]);
+        if(formdata.get('file')['size']>100*1024*1024){
+            alert('视频文件过大');
+            return;
+        }
         $.ajax({
             type: 'POST',
-            url: API+'upload',
+            url: API+'video',
             data: formdata,
             dataType:'json',
             processData: false,   // jQuery不要去处理发送的数据
             contentType: false,   // jQuery不要去设置Content-Type请求头
             success: function(res){
+                var msg = '';
+                if(type==='img'){
+                    msg = '<img class="chatimg" src ="'+res.data+'"/>';
+                }else{
+                    msg = '<video controls="controls" width="400px" height="320px"><source src="'+ res.data+'" type="video/mp4"></video>';
+                }
                 var ht = ' <div class="chat-text section-right flex">\n' +
-                    '            <span class="text"><i class="icon icon-sanjiao3 t-32"></i><img class="chatimg" src="'+ res.data.url+'"/></span>\n' +
+                    '            <span class="text"><i class="icon icon-sanjiao3 t-32"></i>'+msg+'</span>\n' +
                     '            <span class="char-img" style="background-image: url({$from_info.icon})"></span>\n' +
                     '           </div>';
                 $(".chat-content").append(ht);
@@ -123,21 +146,23 @@
                 var data = {};
                 data['fromid'] = from;
                 data['toid'] = tos;
-                data['type'] = 'img';
+                data['type'] = type;
                 data['msg'] = res.data.url;
                 var msg = JSON.stringify(data);
                 ws.send(msg);
             }
         });
-    })
+    }
     function getMsg() {
         $.post(API+'getMsg',{from:from,to:tos},function(res){
             for (var i=0;i<(res.data).length;i++) {
                 var msg = '';
                 if(res.data[i].type===1){
                     msg = res.data[i].content;
-                }else{
+                }else if(res.data[i].type===2){
                     msg = '<img class="chatimg" src ="'+res.data[i].content+'"/>';
+                }else{
+                    msg = '<video controls="controls" width="400px" height="320px"><source src="'+ res.data[i].content+'" type="video/mp4"></video>';
                 }
                 var id = res.data[i].fromid;
                 if (id===from){
