@@ -2,7 +2,7 @@
    功能：初期目标是用户一对一聊天，能够发送图片，和视频文件给对方
 
 
-###介绍
+### 介绍
  由于workerman是独立于其他web服务器，由于workerman是常驻内存的PHP文件只从磁盘读取一次，所以如果修改了代码需要进行重启
  
  如需运行测试需要修改 start_businessworker.php start_businessworker.php start_gateway.php  start_register.php 三个文件中的IP地址
