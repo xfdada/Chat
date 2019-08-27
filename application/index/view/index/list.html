@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no" />
+    <title>我的好友</title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/themes.css?v=2017129">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/h5app.css">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/fonts/iconfont.css?v=2016070717">
+    <script src="__STATIC__/newcj/js/jquery.min.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible_css.debug.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible.debug.js"></script>
+</head>
+<body>
+<div class='fui-page-group'>
+    <div class='fui-page chatDetail-page'>
+        <div class="chat-header flex">
+            <i class="icon icon-add into-shop t-48"  style="color: #888;background:#ffffff"></i>
+        </div>
+        <div class="fui-content navbar" style="padding:1.2rem 0 1.35rem 0;">
+            <div class="chat-content">
+                <div class="chat-text section-left flex">
+                    <span class="char-img" style="background-image: url(https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1014572345,705313395&fm=16&gp=0.jpg)"></span>
+                    <div style="width: 85%"><div style="float: top;font-size:0.5rem;">小白 <span class="shop-online t-26" style="float: right;margin-right: 0.1rem">在线</span></div> <div style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;">啦啦啦，来看看啦啦啦，来看看啦啦啦，来看看啦啦啦，来看看啦啦啦，来看看</div></div>
+                </div>
+            </div>
+
+        </div>
+        <div class="fix-send flex footer-bar">
+            <div style="width: 33%;text-align: center;">
+                <i class="icon icon-message t-50" onclick="switch_to('message_list')"style="color: #888;"></i>
+            </div>
+          <div style="width: 33%;text-align: center;">
+              <i class="icon icon-group t-50" onclick="switch_to('my_group')"  style="color: #888;"></i>
+          </div>
+            <div style="width: 33%;text-align: center;">
+                <i class="icon icon-my2 t-50" onclick="switch_to('userList')"  style="color: #888;"></i>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    var API = 'http://chat.com/api/chat/';
+    var ws =  new WebSocket("ws://192.168.1.106:4399");
+    ws.onmessage = function(e){
+        var msgs = JSON.parse(e.data);
+        console.log(msgs);
+        switch (msgs.type) {
+            case 'is_line':
+                var id ="#fr"+msgs.uid;
+                if(msgs.is_line===1){
+                    $(id).text("在线");
+                }
+                return;
+            case 'init':
+                data['type'] = "bind"
+                data["fromid"] = 10;
+                var msg = JSON.stringify(data);
+                ws.send(msg);
+                return;
+        }
+    };
+    var data = {};
+    function getFriends(ids) {
+        $.post(API+'getFriend',{id:ids},function(res){
+            if (res.code===5){
+                var ht = '<div style="margin:50% 40%">没有好友</div>';
+                $(".chat-content").append(ht);
+                return;
+            }
+            for (var i=0;i<(res.data.info).length;i++){
+                var ht = '   <div class="chat-text section-left flex" onclick="talk('+res.data.info[i].id+','+ ids+')">\n' +
+                    '                    <span class="char-img" style="background-image: url('+res.data.info[i].icon+')"></span>\n' +
+                    '                    <div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data.info[i].name+'<span id="fr'+res.data.info[i].id+'" class="shop-online t-26" style="float: right;margin-right: 0.1rem">离线</span></div> <div style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"></div></div>\n' +
+                    '                </div>';
+                $(".chat-content").append(ht);
+                data['type'] = 'is_line';
+                data['uid'] = res.data.id[i];
+                data['from_id'] = ids;
+                var msg = JSON.stringify(data);
+                ws.send(msg)
+            }
+
+        })
+    }
+    var ids =  getFriends(10);
+
+    function talk(to_id,id){
+        window.location.href="http://chat.com/index/index/index/from/"+id+"/to/"+to_id;
+    }
+    function switch_to(type){
+        window.location.href="http://chat.com/index/index/"+type;
+    }
+</script>
+</body>
+</html>

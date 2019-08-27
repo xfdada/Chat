@@ -54,12 +54,13 @@ class Events
    public static function onMessage($client_id, $message) //此方法是处理逻辑的地方
    {
        $msg = json_decode($message,true);
+//       var_dump($msg);
        $type = $msg['type'];
         switch ($type){
-            case "bind":
+            case "bind"://绑定用户id
                 Gateway::bindUid($client_id,$msg["fromid"]);
                 break;
-            case "text":
+            case "text": //发送文本消息
                 $data['type'] = $msg['type'];
                 $data['fromid'] = $msg['fromid'];
                 $data['toid'] = $msg['toid'];
@@ -75,7 +76,7 @@ class Events
                 $data['type'] = 'save'; //将消息类型改为保存，
                 Gateway::sendToUid($msg['fromid'],json_encode($data));
                 break;
-            case 'img':
+            case 'img'://发送到是图片消息
                 $data['type'] = $msg['type'];
                 $data['fromid'] = $msg['fromid'];
                 $data['toid'] = $msg['toid'];
@@ -83,6 +84,21 @@ class Events
                 $data['time'] = time();
                 Gateway::sendToUid($msg['toid'],json_encode($data));
                 break;
+            case 'video'://发送到是图片消息
+                $data['type'] = $msg['type'];
+                $data['fromid'] = $msg['fromid'];
+                $data['toid'] = $msg['toid'];
+                $data['msg'] = $msg['msg'];
+                $data['time'] = time();
+                Gateway::sendToUid($msg['toid'],json_encode($data));
+                break;
+            case 'is_line'://判断用户是否在线
+                $is_line = Gateway::isUidOnline($msg['uid']);
+                $data['type'] = 'is_line';
+                $data['uid'] = $msg['uid'];
+                $data['is_line'] = $is_line;
+                Gateway::sendToUid($msg['from_id'],json_encode($data));
+
         }
    }
    
@@ -93,6 +109,6 @@ class Events
    public static function onClose($client_id)
    {
        // 向所有人发送 
-      //  GateWay::sendToAll("$client_id logout\r\n");
+//        GateWay::sendToAll("$client_id logout\r\n");
    }
 }

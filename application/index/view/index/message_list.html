@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no" />
+    <title>我的消息</title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/themes.css?v=2017129">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/h5app.css">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/fonts/iconfont.css?v=2016070717">
+    <script src="__STATIC__/newcj/js/jquery.min.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible_css.debug.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible.debug.js"></script>
+</head>
+<body>
+<div class='fui-page-group'>
+    <div class='fui-page chatDetail-page'>
+        <div class="chat-header flex">
+            <span style="font-size: 0.4rem;">我的消息</span>
+            <i class="icon icon-add into-shop t-48"  style="color: #888;background:#ffffff"></i>
+        </div>
+        <div class="fui-content navbar" style="padding:1.2rem 0 1.35rem 0;">
+            <div class="chat-content">
+            </div>
+        </div>
+        <div class="fix-send flex footer-bar">
+            <div style="width: 33%;text-align: center;">
+                <i class="icon icon-message t-50" onclick="switch_to('message_list')"style="color: #888;"></i>
+            </div>
+            <div style="width: 33%;text-align: center;">
+                <i class="icon icon-group t-50" onclick="switch_to('my_group')"  style="color: #888;"></i>
+            </div>
+            <div style="width: 33%;text-align: center;">
+                <i class="icon icon-my2 t-50" onclick="switch_to('userList')"  style="color: #888;"></i>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    var API = 'http://chat.com/api/chat/';
+    var ws =  new WebSocket("ws://192.168.1.106:4399");
+    ws.onmessage = function(e){
+        var msgs = JSON.parse(e.data);
+        console.log(msgs);
+        switch (msgs.type) {
+            case 'init':
+                data['type'] = "bind"
+                data["fromid"] = 10;
+                var msg = JSON.stringify(data);
+                ws.send(msg);
+                return;
+            case 'text':
+                show(msgs.fromid,msgs.msg,'text');
+                return;
+            case 'img':
+                show(msgs.fromid,msgs.msg,'img');
+                return;
+            case 'video':
+                show(msgs.fromid,msgs.msg,'video');
+                return;
+        }
+    };
+    var data = {};
+    function getMessages(ids) {
+        $.post(API+'myMessage',{id:ids},function(res){
+            if (res.code===5){
+                var ht = '<div style="margin:50% 40%">没有聊天记录</div>';
+                $(".chat-content").append(ht);
+                return;
+            }
+            for (var i=0;i<(res.data).length;i++){
+                var msg = '';
+                if (res.data[i].type===1) {
+                    msg = res.data[i].last_msg;
+                }else if(res.data[i].type===2){
+                    msg = '图片消息'
+                }else{
+                    msg = '视频消息'
+                }
+                var types = '';
+                if (res.data[i].no_read !==0){
+                    types = 'background: red;';
+                }
+                var ht = '   <div class="chat-text section-left flex" onclick="talk('+res.data[i].id+','+ ids+')">\n' +
+                    ' <span class="char-img" style="background-image: url('+res.data[i].icon+')"><div id="point'+res.data[i].id+'" style="left:0.9rem;'+types+'position: relative;width:0.20rem;height: 0.20rem;border-radius:50%"></div></span>\n' +
+                    '<div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data[i].name+
+                    '<span  class="shop-online t-26" style="float: right;margin-right: 0.15rem;font-size: 0.27rem;color: #888;">'+res.data[i].times+'</span></div>'+
+                    ' <div id="fr'+res.data[i].id+'" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+msg+'</div></div>\n' +
+                    '                </div>';
+                $(".chat-content").append(ht);
+            }
+
+        })
+    }
+    var ids =  getMessages(10);
+
+    function talk(to_id,id){
+
+        window.location.href="http://chat.com/index/index/index/from/"+id+"/to/"+to_id;
+    }
+    function switch_to(type){
+        window.location.href="http://chat.com/index/index/"+type;
+    }
+    function show(id,content,type){
+        var ids ="#fr"+id;
+        var point = "#pointer"+id;
+        if (type==='text'){
+            $(ids).text(content);
+            $(point).attr('background','red')
+        } else if(type==='img'){
+            $(ids).text("图片消息");
+            $(point).attr('background','red')
+        }else{
+            $(ids).text("视频消息");
+            $(point).attr('background','red')
+        }
+    }
+</script>
+</body>
+</html>

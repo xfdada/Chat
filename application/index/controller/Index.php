@@ -24,4 +24,18 @@ class Index extends Controller
         $info = Db::table('user')->find($id);
         return $info;
     }
+
+    /**
+     * 我的好友列表
+     */
+    public function userList(){
+        return $this->fetch('list');
+    }
+
+    /**
+     * 我的消息
+     */
+    public function message_List(){
+        return $this->fetch('message_list');
+    }
 }

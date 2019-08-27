@@ -20,10 +20,9 @@
 <div class='fui-page-group'>
 <div class='fui-page chatDetail-page'>
     <div class="chat-header flex">
-        <i class="icon icon-toleft t-48"></i>
+        <i class="icon icon-toleft t-48 returns"></i>
         <span class="shop-titlte t-30">{$to_info.name}</span>
         <span class="shop-online t-26"></span>
-        <span class="into-shop">进店</span>
     </div>
     <div class="fui-content navbar" style="padding:1.2rem 0 1.35rem 0;">
         <div class="chat-content">
@@ -32,12 +31,12 @@
         </div>
     </div>
     <div class="fix-send flex footer-bar">
-        <i class="icon icon-emoji1 t-50"></i>
-        <input class="send-input t-28" maxlength="180">
+        <i class="icon icon-emoji1 t-44"></i>
+        <input class="send-input t-28" maxlength="60%">
         <input type="file" id="img" name="img" hidden>
         <input type="file" id="video" name="video" hidden>
-        <i class="icon icon-add img_s t-50"  style="color: #888;"></i>
-        <i class="icon icon-add video_s t-50"  style="color: #888;"></i>
+        <i class="icon icon-add img_s t-44"  style="color: #888;"></i>
+        <i class="icon icon-add video_s t-44"  style="color: #888;"></i>
         <span class="send-btn">发送</span>
     </div>
 </div>
@@ -58,7 +57,6 @@
                   data["todi"] = tos;
                   var msg = JSON.stringify(data);
                   ws.send(msg);
-                  console.log(data['type']);
                   return;
               case 'text':
                   if(msgs.fromid==tos){
@@ -102,9 +100,9 @@
          $(".chat-content").scrollTop(20000);
      })
     $(".img_s").click(function(){
-        $("#file").click();
+        $("#img").click();
     });
-    $("#file").change(function (){
+    $("#img").change(function (){
        upload('img','img')
     });
     $(".video_s").click(function(){
@@ -125,15 +123,19 @@
         }
         $.ajax({
             type: 'POST',
-            url: API+'video',
+            url: API+type,
             data: formdata,
             dataType:'json',
             processData: false,   // jQuery不要去处理发送的数据
             contentType: false,   // jQuery不要去设置Content-Type请求头
             success: function(res){
+                if(res.code===5){
+                    alert(res.msg);
+                    return;
+                }
                 var msg = '';
                 if(type==='img'){
-                    msg = '<img class="chatimg" src ="'+res.data+'"/>';
+                    msg = '<img class="chatimg" src ="'+res.data.url+'"/>';
                 }else{
                     msg = '<video controls="controls" width="400px" height="320px"><source src="'+ res.data+'" type="video/mp4"></video>';
                 }
@@ -184,7 +186,9 @@
         })
     }
     getMsg();
-
+    $(".returns").click(function(){
+        history.back(-1)
+    });
 </script>
 </body>
 </html>
