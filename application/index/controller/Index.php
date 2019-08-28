@@ -38,4 +38,18 @@ class Index extends Controller
     public function message_List(){
         return $this->fetch('message_list');
     }
+
+    /**
+     * 我的群消息
+     */
+    public function group_List(){
+        return $this->fetch('group_list');
+    }
+    /**
+     * 添加群或人
+     */
+
+    public function add(){
+        return $this->fetch('add');
+    }
 }

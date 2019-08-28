@@ -12,7 +12,7 @@
     <script src="__STATIC__/newcj/js/dist/flexible/flexible.debug.js"></script>
     <style>
         .chatimg{
-            width: 400px;
+            width: 5.5rem;
         }
     </style>
 </head>
@@ -43,7 +43,8 @@
 </div>
 
 <script>
-    var API = 'http://chat.com/api/chat/';
+    var domain = document.domain;//获取域名
+    var API = 'http://'+domain+'/api/chat/';
     var from = {$from};
     var tos = {$to};
     var data = {};
@@ -111,6 +112,7 @@
     $("#video").change(function (){
         upload('video','video');
     });
+    //上传文件
     function upload(id,type){
         var formdata =  new FormData();
         formdata.append('formid',from);
@@ -155,6 +157,7 @@
             }
         });
     }
+    //初始化消息
     function getMsg() {
         $.post(API+'getMsg',{from:from,to:tos},function(res){
             for (var i=0;i<(res.data).length;i++) {
@@ -186,7 +189,9 @@
         })
     }
     getMsg();
+    //返回上一层
     $(".returns").click(function(){
+        $.post(API+'read',{fromid:tos,toid:from});
         history.back(-1)
     });
 </script>

@@ -74,7 +74,7 @@ class Chat extends Controller
             'toid' => $info['toid'],
             'to_name' => $this->getNname($info['toid']),
             'content' => 'http://' . $_SERVER['HTTP_HOST'] . '/uploads/img/' . $name,
-            'is_read' => 2,
+            'is_read' => 1,
             'type' => 2,
             'time' => time(),
         ];
@@ -125,7 +125,7 @@ class Chat extends Controller
             'toid' => $info['toid'],
             'to_name' => $this->getNname($info['toid']),
             'content' => 'http://' . $_SERVER['HTTP_HOST'] . $src,
-            'is_read' => 2,
+            'is_read' =>1,
             'type' => 3,
             'time' => time(),
         ];
@@ -134,9 +134,6 @@ class Chat extends Controller
             return $this->ToJson($src,'',1);
         }
     }
-
-
-
     /**
      * 好友列表
      */
@@ -185,6 +182,35 @@ class Chat extends Controller
     }
 
     /**
+     * 标记消息已读
+     */
+    public function Read(){
+        $fromid = input("fromid/d",0);
+        $toid = input("toid/d",0);
+
+        if($fromid==0||$toid==0){
+            return $this->ToJson(null,'参数错误',5);
+        }
+        $data['is_read']=2;
+        $res = Db::table('user_message')->where('fromid=:fromid&&toid=:toid',['fromid'=>$fromid,'toid'=>$toid])->update($data);
+    }
+
+    /**
+     * 搜索好友/群
+     */
+    public function find(){
+        $param = input("info",'');
+        if ($param===''||$param===0){
+            return $this->ToJson(null,'参数错误',5);
+        }
+        $user_res = Db::table('user')->where("account='$param' or phone='$param'or name like '%$param%'")
+            ->field('id,account,name,icon,introduce')->select();
+        $group_res = Db::table('group')->where("group_account= '$param' or group_name like '%$param%'")->select();
+        $data = ['user'=>$user_res,'group'=>$group_res];
+        return $this->ToJson($data,'',1);
+    }
+
+    /**
      * json格式化
      * @param $data
      * @param $msg
@@ -211,6 +237,12 @@ class Chat extends Controller
         $name = Db::table('user')->field('icon')->find($id);
         return $name['icon'];
     }
+
+    /** 获取最后一次发送的消息
+     * @param $id
+     * @param $from_id
+     * @return 发送时间和内容
+     */
     private function lastMsg($id,$from_id){
 
         $sql = "SELECT time,content,type FROM user_message WHERE (fromid={$id} AND toid={$from_id}) OR(fromid={$from_id} AND toid={$id}) ORDER BY id DESC LIMIT 1";
@@ -220,6 +252,12 @@ class Chat extends Controller
 //        dump($res[0]);exit;
         return $res[0];
     }
+
+    /**获取未读消息
+     * @param $id  用户id
+     * @param $from_id 发送者id
+     * @return int|string  条数
+     */
 
     private function noRead($id,$from_id){
         $res = Db::table('user_message')->where('fromid=:toid&&toid=:fromid',['toid'=>$id,'fromid'=>$from_id])->where('is_read=1')->count('id');

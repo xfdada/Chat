@@ -84,7 +84,7 @@ class Events
                 $data['time'] = time();
                 Gateway::sendToUid($msg['toid'],json_encode($data));
                 break;
-            case 'video'://发送到是图片消息
+            case 'video'://发送到是视频消息
                 $data['type'] = $msg['type'];
                 $data['fromid'] = $msg['fromid'];
                 $data['toid'] = $msg['toid'];

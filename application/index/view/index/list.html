@@ -15,23 +15,19 @@
 <div class='fui-page-group'>
     <div class='fui-page chatDetail-page'>
         <div class="chat-header flex">
-            <i class="icon icon-add into-shop t-48"  style="color: #888;background:#ffffff"></i>
+            <span class="shop-titlte t-30">联系人</span>
+            <i class="icon icon-add into-shop t-48" onclick="switch_to('add')"  style="color: #888;background:#ffffff"></i>
         </div>
         <div class="fui-content navbar" style="padding:1.2rem 0 1.35rem 0;">
             <div class="chat-content">
-                <div class="chat-text section-left flex">
-                    <span class="char-img" style="background-image: url(https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1014572345,705313395&fm=16&gp=0.jpg)"></span>
-                    <div style="width: 85%"><div style="float: top;font-size:0.5rem;">小白 <span class="shop-online t-26" style="float: right;margin-right: 0.1rem">在线</span></div> <div style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;">啦啦啦，来看看啦啦啦，来看看啦啦啦，来看看啦啦啦，来看看啦啦啦，来看看</div></div>
-                </div>
             </div>
-
         </div>
         <div class="fix-send flex footer-bar">
             <div style="width: 33%;text-align: center;">
                 <i class="icon icon-message t-50" onclick="switch_to('message_list')"style="color: #888;"></i>
             </div>
           <div style="width: 33%;text-align: center;">
-              <i class="icon icon-group t-50" onclick="switch_to('my_group')"  style="color: #888;"></i>
+              <i class="icon icon-group t-50" onclick="switch_to('group_List')"  style="color: #888;"></i>
           </div>
             <div style="width: 33%;text-align: center;">
                 <i class="icon icon-my2 t-50" onclick="switch_to('userList')"  style="color: #888;"></i>
@@ -42,7 +38,8 @@
 </div>
 
 <script>
-    var API = 'http://chat.com/api/chat/';
+    var domain = document.domain;//获取域名
+    var API = 'http://'+domain+'/api/chat/';
     var ws =  new WebSocket("ws://192.168.1.106:4399");
     ws.onmessage = function(e){
         var msgs = JSON.parse(e.data);
@@ -88,11 +85,12 @@
     var ids =  getFriends(10);
 
     function talk(to_id,id){
-        window.location.href="http://chat.com/index/index/index/from/"+id+"/to/"+to_id;
+        window.location.href="http://"+domain+"/index/index/index/from/"+id+"/to/"+to_id;
     }
     function switch_to(type){
-        window.location.href="http://chat.com/index/index/"+type;
+        window.location.href="http://"+domain+"/index/index/"+type;
     }
+
 </script>
 </body>
 </html>

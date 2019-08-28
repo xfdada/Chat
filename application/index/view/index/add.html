@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no"/>
+    <title>添加</title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/themes.css?v=2017129">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/h5app.css">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/fonts/iconfont.css?v=2016070717">
+    <script src="__STATIC__/newcj/js/jquery.min.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible_css.debug.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible.debug.js"></script>
+    <style>
+    </style>
+</head>
+<body ontouchstart>
+<div class='fui-page-group'>
+    <div class='fui-page chatDetail-page'>
+        <div class="chat-header flex">
+            <i class="icon icon-toleft t-40 returns"></i>
+            <span class="shop-titlte t-20">添加好友/群</span>
+            <input id="info" type="text" placeholder="账号/昵称/群名称"
+                   style="border: none;border-bottom:1px solid #000000;margin: 0 0.2rem;overflow: scroll;padding: 0.15rem 0;width:50%"/>
+            <span class="into-shop find">搜索</span>
+        </div>
+        <div class="fui-content navbar" style="padding:1.2rem 0 1.35rem 0;">
+            <div class="chat-content">
+                <div hidden id="user" style="height: 0.4rem;text-align:center;width:90%;margin:20px auto;border-radius:0.1rem;background: #DFF0D8;">用户</div>
+                <div class="user">
+                </div>
+                <div hidden id="group" style="height: 0.4rem;text-align:center;width:90%;margin:10px auto;border-radius:0.1rem;background: #DFF0D8;">群</div>
+                <div class="group">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var domain = document.domain;//获取域名
+    var API = 'http://' + domain + '/api/chat/';
+    $(".find").click(function () {
+        var info = $("#info").val();
+        $(".user").val("");
+        $(".group").val("");
+        if (info === '') {
+            return;
+        }
+        $.post(API + 'find', {info: info}, function (res) {
+            if (res.code === 5) {
+                $(".chat-content").val('');
+                var ht = '<div style="margin:50% 40%">没有找到相关记录</div>';
+                $(".chat-content").append(ht);
+                return;
+            }
+            $('#user').attr('hidden',false);
+            $('#group').attr('hidden',false);
+            if ((res.data.user).length===0){
+                var ht = '<div style="text-align: center;height: 1rem;">没有找到相关记录</div>';
+                $(".user").append(ht);
+            } else{
+                for (var i = 0; i < (res.data.user).length; i++) {
+                    var user = ' <div class="chat-text section-left flex" onclick="join('+res.data.user[i].id+','+10+','+'"user"'+')">\n' +
+                        '     <span class="char-img" style="background-image: url('+res.data.user[i].icon+')"></span>\n' +
+                        '     <div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data.user[i].name+'</div>'+
+                        ' <div id="us'+res.data.user[i].id+'" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+res.data.user[i].introduce+'</div></div>\n' +
+                        '     </div>'
+                    $(".user").append(user);
+                }
+            }
+            if ((res.data.group).length===0){
+                var ht = '<div style="text-align: center;height: 1rem;">没有找到相关记录</div>';
+                $(".group").append(ht);
+            } else{
+                for (var i = 0; i < (res.data.group).length; i++) {
+                    var group = ' <div class="chat-text section-left flex" onclick="join('+res.data.group[i].group_id+','+10+','+'"group"'+')">\n' +
+                        '     <span class="char-img" style="background-image: url('+res.data.group[i].group_icon+')"></span>\n' +
+                        '     <div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data.group[i].group_name+'</div>'+
+                        ' <div id="gr'+res.data.group[i].id+'"  style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+res.data.group[i].group_introduce+'</div></div>\n' +
+                        '     </div>'
+                    $(".group").append(group);
+                }
+            }
+
+        })
+    });
+    //返回上一层
+    $(".returns").click(function () {
+        history.back(-1)
+    });
+</script>
+</body>
+</html>
