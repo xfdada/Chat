@@ -98,6 +98,21 @@ class Events
                 $data['uid'] = $msg['uid'];
                 $data['is_line'] = $is_line;
                 Gateway::sendToUid($msg['from_id'],json_encode($data));
+                break;
+            case 'add':
+                $add_type = $msg['add_type'];
+                if($add_type=='user'){
+                    $data['content'] = $msg['name']."想添加你为好友";
+                }else{
+                    $data['content'] = $msg['name']."想加入群";
+                }
+                $data['type'] = 'add';
+                $data['name'] = $msg['name'];
+                $data['fromid'] = $msg['fromid'];
+                $data['todi'] = $msg['todi'];
+                Gateway::sendToUid($msg['todi'],json_encode($data));
+                $data['type'] = 'save'; //将消息类型改为保存，
+                Gateway::sendToUid($msg['fromid'],json_encode($data));
 
         }
    }

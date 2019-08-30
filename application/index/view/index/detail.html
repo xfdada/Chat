@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no" />
+    <title>沟通中</title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/themes.css?v=2017129">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/css/h5app.css">
+    <link rel="stylesheet" type="text/css" href="__STATIC__/newcj/fonts/iconfont.css?v=2016070717">
+    <script src="__STATIC__/newcj/js/jquery.min.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible_css.debug.js"></script>
+    <script src="__STATIC__/newcj/js/dist/flexible/flexible.debug.js"></script>
+    <style>
+        .chatimg{
+            width: 5.5rem;
+        }
+    </style>
+</head>
+<body ontouchstart>
+<div class='fui-page-group'>
+<div class='fui-page chatDetail-page'>
+    <div class="chat-header flex">
+        <i class="icon icon-toleft t-48 returns"></i>
+        <span class="shop-titlte t-20"></span>
+    </div>
+    <div class="fui-content navbar" style="padding:1.2rem 0 1.35rem 0;">
+        <div class="chat-content">
+            <div class="icon" style="height: 5rem;background: #c4e3f3;text-align: center;justify-content: center">
+                <img style="margin-top:1.2rem;border-radius:50%" src="https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1177508692,91472600&fm=15&gp=0.jpg"/>
+            </div>
+            <div style="text-align: center"><span class="t-46">小黑</span></div>
+            <div style="text-align: center">账号：<span>445566</span></div>
+            <div style="text-align: center">个性签名：<span>没啥好说的</span></div>
+        </div>
+    </div>
+    <div class="fix-send footer-bar" style="text-align: center">
+        <span class="send-btn" style="margin: auto auto;width: 2rem;border-radius: 0.5rem"></span>
+    </div>
+</div>
+</div>
+
+<script>
+    var domain = document.domain;//获取域名
+    var API = 'http://'+domain+'/api/chat/';
+    var ws = new WebSocket("ws://192.168.1.106:4399")
+    var type = '{$info['type']}';
+    var name = '';
+    var id = 0;
+    if (type=='user'){
+        $(".shop-titlte").text('用户信息')
+        $(".send-btn").text('添加好友')
+        name = '{$my_info['name']}';
+        id  = {$info['id']};
+
+    } else{
+        $(".shop-titlte").text('群信息')
+        $(".send-btn").text('加入群聊')
+        name = '{$detail['group_name']}';
+        id  = {$detail['create_by']};
+    }
+    //返回上一层
+    $(".returns").click(function(){
+        history.back(-1)
+    });
+    $(".send-btn").click(function(){
+        data['type'] = "add";
+        data['add_type'] = '{$info['type']}';
+        data["fromid"] = {$info['myid']};
+        data["name"] = name;
+        data["todi"] = id;
+        var msg = JSON.stringify(data);
+        ws.send(msg);
+    });
+</script>
+</body>
+</html>

@@ -52,4 +52,21 @@ class Index extends Controller
     public function add(){
         return $this->fetch('add');
     }
+
+    /**
+     * 用户/群信息
+     */
+    public function Info(){
+        $id = input('id/d',0);
+        $myid = input('myid/d',0);
+        $type = input('types');
+        if($type=='user'){ $option='id';$filed = 'id,account,name,icon,introduce';}
+        else{$option='group_id';$filed = 'group_id,group_account,group_name,group_introduce,group_icon,group_count,create_by';}
+        $my_info = Db::table('user')->where('id',$myid)->field( 'id,account,name,icon,introduce')->find();
+        $res = Db::table($type)->where($option,$id)->field($filed)->find();
+        $this->assign('info',['id'=>$id,'myid'=>$myid,'type'=>$type]);
+        $this->assign('detail',$res);
+        $this->assign('my_info',$my_info);
+        return $this->fetch('detail');
+    }
 }
