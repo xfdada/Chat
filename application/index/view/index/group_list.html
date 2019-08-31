@@ -38,6 +38,7 @@
 </div>
 
 <script>
+    var fromid = {$fromid};
     var domain = document.domain;//获取域名
     var API = 'http://'+domain+'/api/chat/';
     var ws =  new WebSocket("ws://192.168.1.106:4399"); //上线请修改与Mychat中文件地址一致
@@ -46,7 +47,7 @@
         switch (msgs.type) {
             case 'init':
                 data['type'] = "bind"
-                data["fromid"] = 10;
+                data["fromid"] = fromid;
                 var msg = JSON.stringify(data);
                 ws.send(msg);
                 return;
@@ -95,7 +96,7 @@
         })
     }
 
-    var ids =  getMessages(10);//此处建立登录页后定义变量提换
+    var ids =  getMessages(fromid);//此处建立登录页后定义变量提换
 
     //点击进入与好友聊天页面
     function talk(to_id,id){
@@ -104,7 +105,7 @@
     }
     //跳转页面
     function switch_to(type){
-        window.location.href="http://"+domain+"/index/index/"+type;
+        window.location.href="http://"+domain+"/index/index/"+type+"/fromid/"+fromid;
     }
     //处理webSocket服务器发送过来的数据
     function show(id,content,type){

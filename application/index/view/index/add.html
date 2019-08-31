@@ -38,6 +38,7 @@
 </div>
 
 <script>
+    var from_id = {$fromid};
     var domain = document.domain;//获取域名
     var API = 'http://' + domain + '/api/chat/';
     $(".find").click(function () {
@@ -62,7 +63,7 @@
                 $(".user").append(ht);
             } else{
                 for (var i = 0; i < (res.data.user).length; i++) {
-                    var user = ' <div class="chat-text section-left flex" onclick="join('+res.data.user[i].id+','+10+','+'\'user\''+')">\n' +
+                    var user = ' <div class="chat-text section-left flex" onclick="join('+res.data.user[i].id+','+from_id+','+'\'user\''+')">\n' +
                         '     <span class="char-img" style="background-image: url('+res.data.user[i].icon+')"></span>\n' +
                         '     <div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data.user[i].name+'</div>'+
                         ' <div id="us'+res.data.user[i].id+'" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+res.data.user[i].introduce+'</div></div>\n' +
@@ -75,7 +76,7 @@
                 $(".group").append(ht);
             } else{
                 for (var i = 0; i < (res.data.group).length; i++) {
-                    var group = ' <div class="chat-text section-left flex" onclick="join('+res.data.group[i].group_id+','+10+','+'\'group\''+')">\n' +
+                    var group = ' <div class="chat-text section-left flex" onclick="join('+res.data.group[i].group_id+','+from_id+','+'\'group\''+')">\n' +
                         '     <span class="char-img" style="background-image: url('+res.data.group[i].group_icon+')"></span>\n' +
                         '     <div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data.group[i].group_name+'</div>'+
                         ' <div id="gr'+res.data.group[i].id+'"  style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+res.data.group[i].group_introduce+'</div></div>\n' +

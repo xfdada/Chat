@@ -38,6 +38,7 @@
 </div>
 
 <script>
+    var from_id = {$fromid};
     var domain = document.domain;//获取域名
     var API = 'http://'+domain+'/api/chat/';
     var ws =  new WebSocket("ws://192.168.1.106:4399"); //上线请修改与Mychat中文件地址一致
@@ -46,7 +47,7 @@
         switch (msgs.type) {
             case 'init':
                 data['type'] = "bind"
-                data["fromid"] = 10;
+                data["fromid"] = from_id;
                 var msg = JSON.stringify(data);
                 ws.send(msg);
                 return;
@@ -60,8 +61,13 @@
                 show(msgs.fromid,msgs.msg,'video');
                 return;
             case 'add'://显示好友/群添加信息
-                show(msgs.fromid,msgs.msg,'add');
-                return;
+                var ht = '   <div class="chat-text section-left flex" onclick="talk('+msgs.toid+','+ from_id+')">\n' +
+                    ' <span class="char-img" style="background-image: url('+msgs.icon+')"><div id="point'+msgs.toid+'" style="left:0.9rem;background: red;position: relative;width:0.20rem;height: 0.20rem;border-radius:50%"></div></span>\n' +
+                    '<div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+msgs.name+
+                    '<span  class="shop-online t-26" style="float: right;margin-right: 0.15rem;font-size: 0.27rem;color: #888;">'+msgs.time+'</span></div>'+
+                    ' <div id="fr'+msgs.toid+'" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+msgs.msg+'</div></div>\n' +
+                    '                </div>';
+                $(".chat-content").prepend(ht);
         }
     };
     var data = {};
@@ -73,32 +79,48 @@
                 $(".chat-content").append(ht);
                 return;
             }
-            for (var i=0;i<(res.data).length;i++){
+            for (var i=0;i<(res.data.message).length;i++){
                 var msg = '';
-                if (res.data[i].type===1) {
-                    msg = res.data[i].last_msg;
-                }else if(res.data[i].type===2){
+                if (res.data.message[i].type===1) {
+                    msg = res.data.message[i].last_msg;
+                }else if(res.data.message[i].type===2){
                     msg = '图片消息'
-                }else{
+                }else if (res.data.message[i].type===3) {
                     msg = '视频消息'
+                }else{
+                    msg = res.data.message[i].last_msg;
                 }
                 var types = '';
-                if (res.data[i].no_read !==0){
+                if (res.data.message[i].no_read !==0){
                     types = 'background: red;';
                 }
-                var ht = '   <div class="chat-text section-left flex" onclick="talk('+res.data[i].id+','+ ids+')">\n' +
-                    ' <span class="char-img" style="background-image: url('+res.data[i].icon+')"><div id="point'+res.data[i].id+'" style="left:0.9rem;'+types+'position: relative;width:0.20rem;height: 0.20rem;border-radius:50%"></div></span>\n' +
-                    '<div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data[i].name+
-                    '<span  class="shop-online t-26" style="float: right;margin-right: 0.15rem;font-size: 0.27rem;color: #888;">'+res.data[i].times+'</span></div>'+
-                    ' <div id="fr'+res.data[i].id+'" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+msg+'</div></div>\n' +
+                var ht = '   <div class="chat-text section-left flex" onclick="talk('+res.data.message[i].id+','+ ids+')">\n' +
+                    ' <span class="char-img" style="background-image: url('+res.data.message[i].icon+')"><div id="point'+res.data.message[i].id+'" style="left:0.9rem;'+types+'position: relative;width:0.20rem;height: 0.20rem;border-radius:50%"></div></span>\n' +
+                    '<div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data.message[i].name+
+                    '<span  class="shop-online t-26" style="float: right;margin-right: 0.15rem;font-size: 0.27rem;color: #888;">'+res.data.message[i].times+'</span></div>'+
+                    ' <div id="fr'+res.data.message[i].id+'" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+msg+'</div></div>\n' +
                     '                </div>';
                 $(".chat-content").append(ht);
             }
-
+            if(res.data.add_msg!==false){
+                for (var i=0;i<(res.data.add_msg).length;i++){
+                    var msg = res.data.add_msg[i].last_msg;
+                    if (res.data.message[i].is_read !==2){
+                        types = 'background: red;';
+                    }
+                    var ht = '   <div class="chat-text section-left flex" onclick="agree('+res.data.message[i].id+','+ ids+')">\n' +
+                        ' <span class="char-img" style="background-image: url('+res.data.message[i].icon+')"><div id="point'+res.data.message[i].id+'" style="left:0.9rem;'+types+'position: relative;width:0.20rem;height: 0.20rem;border-radius:50%"></div></span>\n' +
+                        '<div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data.message[i].name+
+                        '<span  class="shop-online t-26" style="float: right;margin-right: 0.15rem;font-size: 0.27rem;color: #888;">'+res.data.message[i].times+'</span></div>'+
+                        ' <div id="fr'+res.data.message[i].id+'" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+msg+'</div></div>\n' +
+                        '                </div>';
+                    $(".chat-content").append(ht);
+                }
+            }
         })
     }
 
-    var ids =  getMessages(10);//此处建立登录页后定义变量提换
+    var ids =  getMessages(from_id);//此处建立登录页后定义变量提换
 
     //点击进入与好友聊天页面
     function talk(to_id,id){
@@ -107,13 +129,12 @@
     }
     //跳转页面
     function switch_to(type){
-        window.location.href="http://"+domain+"/index/index/"+type;
+        window.location.href="http://"+domain+"/index/index/"+type+"/fromid/"+from_id;
     }
     //处理webSocket服务器发送过来的数据
     function show(id,content,type){
         var ids ="#fr"+id;
         var point = "#point"+id;
-        console.log(point);
         if (type==='text'){
             $(ids).text(content);
             $(point).css('background-color','red')
@@ -124,6 +145,9 @@
             $(ids).text("视频消息");
             $(point).css('background-color','red')
         }
+    }
+    function agree(to_id,id){
+
     }
 </script>
 </body>

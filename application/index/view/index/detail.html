@@ -26,11 +26,11 @@
     <div class="fui-content navbar" style="padding:1.2rem 0 1.35rem 0;">
         <div class="chat-content">
             <div class="icon" style="height: 5rem;background: #c4e3f3;text-align: center;justify-content: center">
-                <img style="margin-top:1.2rem;border-radius:50%" src="https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1177508692,91472600&fm=15&gp=0.jpg"/>
+                <img style="margin-top:1.2rem;border-radius:50%" class="icon" src=""/>
             </div>
-            <div style="text-align: center"><span class="t-46">小黑</span></div>
-            <div style="text-align: center">账号：<span>445566</span></div>
-            <div style="text-align: center">个性签名：<span>没啥好说的</span></div>
+            <div style="text-align: center"><span class="t-46 nc"></span></div>
+            <div style="text-align: center">账号：<span class="account"></span></div>
+            <div style="text-align: center">个性签名：<span class="introduce"></span></div>
         </div>
     </div>
     <div class="fix-send footer-bar" style="text-align: center">
@@ -42,32 +42,70 @@
 <script>
     var domain = document.domain;//获取域名
     var API = 'http://'+domain+'/api/chat/';
-    var ws = new WebSocket("ws://192.168.1.106:4399")
-    var type = '{$info['type']}';
+    var ws = new WebSocket("ws://192.168.1.106:4399");
+    ws.onmessage = function(e){
+        var msgs = JSON.parse(e.data);
+        switch (msgs.type) {
+            case 'init':
+                data['type'] = "bind"
+                data["fromid"] = {$info["myid"]};
+                var msg = JSON.stringify(data);
+                ws.send(msg);
+                return;
+            case 'save':
+                $.post(
+                    API+"save_msg",{msg:e.data},function(res){}
+                );
+        }
+        // if (msgs.type=='save'){
+        //     $.post(
+        //         API+"save_msg",{msg:e.data},function(res){}
+        //     );
+        // }
+        // ws.send("hello");
+    }
+    var type ='{$info["type"]}';
     var name = '';
     var id = 0;
-    if (type=='user'){
-        $(".shop-titlte").text('用户信息')
-        $(".send-btn").text('添加好友')
-        name = '{$my_info['name']}';
-        id  = {$info['id']};
-
-    } else{
-        $(".shop-titlte").text('群信息')
-        $(".send-btn").text('加入群聊')
-        name = '{$detail['group_name']}';
-        id  = {$detail['create_by']};
+    var icon = '';
+    var data={};
+    function getInfo(){
+        $.post(API+'getInfo',{type:'{$info["type"]}',id: {$info['id']},myid:{$info['myid']}},function (res) {
+            if(res.data.info.type==='user'){
+                $(".shop-titlte").text('用户信息')
+                $(".send-btn").text('添加好友')
+                name = res.data.my_info.name;//我的名字
+                id  = res.data.info.id;//好友id
+                icon = res.data.my_info.icon;//用户的头像地址，防止再一次请求查询数据库
+                $(".icon").attr("src",res.data.info.icon);
+                $(".nc").text(res.data.info.name);
+                $(".account").text(res.data.info.account);
+                $(".introduce").text(res.data.info.introduce);
+            }else{
+                $(".shop-titlte").text('群信息')
+                $(".send-btn").text('加入群聊')
+                name = res.data.my_info.name;//我的名字
+                id  = res.data.info.id;//好友id
+                icon = res.data.my_info.icon;//用户的头像地址，防止再一次请求查询数据库
+                $(".icon").attr("src",res.data.info.group_icon);
+                $(".nc").text(res.data.info.group_name);
+                $(".account").text(res.data.info.group_account);
+                $(".introduce").text(res.data.info.group_introduce);
+            }
+        })
     }
+    getInfo();
     //返回上一层
     $(".returns").click(function(){
-        history.back(-1)
+        history.go(-1);
     });
     $(".send-btn").click(function(){
-        data['type'] = "add";
-        data['add_type'] = '{$info['type']}';
-        data["fromid"] = {$info['myid']};
-        data["name"] = name;
-        data["todi"] = id;
+        data['type'] = "add";//识别标识
+        data['add_type'] = type;//添加类型 是用户还是群
+        data["fromid"] = {$info['myid']};//我的id
+        data["name"] = name;//我的名字
+        data["icon"] = icon;//我的名字
+        data["todi"] = id;//发送给哪个用户的id
         var msg = JSON.stringify(data);
         ws.send(msg);
     });

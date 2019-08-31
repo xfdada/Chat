@@ -38,6 +38,7 @@
 </div>
 
 <script>
+    var fromid = {$fromid};
     var domain = document.domain;//获取域名
     var API = 'http://'+domain+'/api/chat/';
     var ws =  new WebSocket("ws://192.168.1.106:4399");
@@ -53,7 +54,7 @@
                 return;
             case 'init':
                 data['type'] = "bind"
-                data["fromid"] = 10;
+                data["fromid"] = fromid;
                 var msg = JSON.stringify(data);
                 ws.send(msg);
                 return;
@@ -82,13 +83,13 @@
 
         })
     }
-    var ids =  getFriends(10);
+    var ids =  getFriends(fromid);
 
     function talk(to_id,id){
         window.location.href="http://"+domain+"/index/index/index/from/"+id+"/to/"+to_id;
     }
     function switch_to(type){
-        window.location.href="http://"+domain+"/index/index/"+type;
+        window.location.href="http://"+domain+"/index/index/"+type+"/fromid/"+fromid;
     }
 
 </script>

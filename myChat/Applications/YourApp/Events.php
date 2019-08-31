@@ -102,17 +102,21 @@ class Events
             case 'add':
                 $add_type = $msg['add_type'];
                 if($add_type=='user'){
-                    $data['content'] = $msg['name']."想添加你为好友";
+                    $data['msg'] = $msg['name']."想添加你为好友";
                 }else{
-                    $data['content'] = $msg['name']."想加入群";
+                    $data['msg'] = $msg['name']."想加入群";
                 }
                 $data['type'] = 'add';
+                $data['icon'] = $msg['icon'];
+                $data['time'] = date('Y-m-d H:i:s',time());
+                $data['add_type'] = $add_type;
                 $data['name'] = $msg['name'];
                 $data['fromid'] = $msg['fromid'];
-                $data['todi'] = $msg['todi'];
+                $data['toid'] = $msg['todi'];
                 Gateway::sendToUid($msg['todi'],json_encode($data));
                 $data['type'] = 'save'; //将消息类型改为保存，
                 Gateway::sendToUid($msg['fromid'],json_encode($data));
+                break;
 
         }
    }

@@ -40,10 +40,11 @@ class Chat extends Controller
                 'toid' => $content['toid'],
                 'to_name' => $this->getNname($content['toid']),
                 'content' => $content['msg'],
-                'time' => $content['time'],
-                'is_read' => $content['is_read'],
+                'time' =>time(),
+                'is_read' => 1,
                 'type' => 1
             ];
+            if(isset($content['add_type'])){$data['type']=4;}
             $res = Db::table('user_message')->insert($data);
             if ($res) {
                 return json_encode(['msg' => 'success', 'code' => 1]);
@@ -154,6 +155,18 @@ class Chat extends Controller
         return $this->ToJson(null,'没有数据',5);
     }
 
+    public function getInfo(){
+        $id = input('id/d',0);
+        $type = input('type');
+        $myid = input('myid/d',0);
+        if($type=='user'){ $option='id';$filed = 'id,account,name,icon,introduce';}
+        else{$option='group_id';$filed = 'group_id,group_account,group_name,group_introduce,group_icon,group_count,id';}
+        $my_info = Db::table('user')->where('id',$myid)->field( 'id,account,name,icon,introduce')->find();
+        $res = Db::table($type)->where($option,$id)->field($filed)->find();
+        $res['type'] = $type;
+        return $this->ToJson(['info'=>$res,'my_info'=>$my_info],'',1);
+    }
+
     /**
      * 我的好友消息
      */
@@ -163,22 +176,42 @@ class Chat extends Controller
             return $this->ToJson(null,'参数错误',5);
         }
         $res = Db::table('user_list')->where("user_id =:id",['id'=>$id])->column('friend_id');
+        $data['add_msg'] = [];
         if (!$res){
-            return $this->ToJson(null,'没有聊天记录',5);
+            $add_msg = Db::table('user_message')->where("fromid not in{$res})and toid = {$id}")
+                ->field('fromid,from_name,content,is_read,time')->select();
+            if (!$add_msg){
+                return $this->ToJson($data['add_msg']=false,'',1);
+            }else{
+                $data['add_msg'] = [];
+                foreach ($add_msg as $v){
+                    $data['add_msg'][]=[
+                        'id'=>$v['fromid'],
+                        'name'=>$v['from_name'],
+                        'icon'=>$this->getIcon($v['fromid']),
+                        'times'=>$this->date('Y-m-d H:i:s',$v['time']),
+                        'last_msg'=>$v['content'],
+                        'is_read'=>$v['is_read']
+                    ];
+                }
+            }
         }
-        $message = [];
+        $data["message"] = [];
        foreach ($res as $v){
-           $message[] = [
-               'id'=>$v,
-               'name'=>$this->getNname($v),
-               'icon'=>$this->getIcon($v),
-               'last_msg'=>$this->lastMsg($v,$id)['content'],
-               'times'=>$this->lastMsg($v,$id)['time'],
-               'type'=>$this->lastMsg($v,$id)['type'],
-               'no_read'=>$this->noRead($v,$id)
-           ];
+           $res = $this->lastMsg($v,$id);
+           if($res!=false){
+               $data["message"][] = [
+                   'id'=>$v,
+                   'name'=>$this->getNname($v),
+                   'icon'=>$this->getIcon($v),
+                   'last_msg'=>$res['content'],
+                   'times'=>$res['time'],
+                   'type'=>$res['type'],
+                   'no_read'=>$this->noRead($v,$id)
+               ];
+           }
        }
-       return $this->ToJson($message,'',1);
+       return $this->ToJson($data,'',1);
     }
 
     /**
@@ -241,16 +274,19 @@ class Chat extends Controller
     /** 获取最后一次发送的消息
      * @param $id
      * @param $from_id
-     * @return 发送时间和内容
+     * @return
      */
     private function lastMsg($id,$from_id){
 
         $sql = "SELECT time,content,type FROM user_message WHERE (fromid={$id} AND toid={$from_id}) OR(fromid={$from_id} AND toid={$id}) ORDER BY id DESC LIMIT 1";
         $res = Db::query($sql);
 //        dump( Db::table('user_message')->getLastSql());
-        $res[0]['time']=date('Y-m-d H:i:s',$res[0]['time']);
-//        dump($res[0]);exit;
-        return $res[0];
+        if($res){
+            $res[0]['time']=date('Y-m-d H:i:s',$res[0]['time']);
+            return $res[0];
+        }
+        return false;
+
     }
 
     /**获取未读消息

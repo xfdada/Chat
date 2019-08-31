@@ -29,6 +29,9 @@ class Index extends Controller
      * 我的好友列表
      */
     public function userList(){
+        $formid = input('fromid/d',0);
+        if ($formid==0){return false;}
+        $this->assign('fromid',$formid);
         return $this->fetch('list');
     }
 
@@ -36,6 +39,9 @@ class Index extends Controller
      * 我的消息
      */
     public function message_List(){
+        $formid = input('fromid/d',0);
+        if ($formid==0){return false;}
+        $this->assign('fromid',$formid);
         return $this->fetch('message_list');
     }
 
@@ -43,6 +49,9 @@ class Index extends Controller
      * 我的群消息
      */
     public function group_List(){
+        $formid = input('fromid/d',0);
+        if ($formid==0){return false;}
+        $this->assign('fromid',$formid);
         return $this->fetch('group_list');
     }
     /**
@@ -50,6 +59,9 @@ class Index extends Controller
      */
 
     public function add(){
+        $formid = input('fromid/d',0);
+        if ($formid==0){return false;}
+        $this->assign('fromid',$formid);
         return $this->fetch('add');
     }
 
@@ -60,13 +72,7 @@ class Index extends Controller
         $id = input('id/d',0);
         $myid = input('myid/d',0);
         $type = input('types');
-        if($type=='user'){ $option='id';$filed = 'id,account,name,icon,introduce';}
-        else{$option='group_id';$filed = 'group_id,group_account,group_name,group_introduce,group_icon,group_count,create_by';}
-        $my_info = Db::table('user')->where('id',$myid)->field( 'id,account,name,icon,introduce')->find();
-        $res = Db::table($type)->where($option,$id)->field($filed)->find();
         $this->assign('info',['id'=>$id,'myid'=>$myid,'type'=>$type]);
-        $this->assign('detail',$res);
-        $this->assign('my_info',$my_info);
         return $this->fetch('detail');
     }
 }
