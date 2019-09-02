@@ -46,7 +46,7 @@
         var msgs = JSON.parse(e.data);
         switch (msgs.type) {
             case 'init':
-                data['type'] = "bind"
+                data['type'] = "bind";
                 data["fromid"] = fromid;
                 var msg = JSON.stringify(data);
                 ws.send(msg);

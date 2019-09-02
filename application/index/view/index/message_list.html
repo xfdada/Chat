@@ -52,13 +52,13 @@
                 ws.send(msg);
                 return;
             case 'text':
-                show(msgs.fromid,msgs.msg,'text');
+                show(msgs.fromid,msgs,'text');
                 return;
             case 'img':
-                show(msgs.fromid,msgs.msg,'img');
+                show(msgs.fromid,msgs,'img');
                 return;
             case 'video':
-                show(msgs.fromid,msgs.msg,'video');
+                show(msgs.fromid,msgs,'video');
                 return;
             case 'add'://显示好友/群添加信息
                 var ht = '   <div class="chat-text section-left flex" onclick="talk('+msgs.toid+','+ from_id+')">\n' +
@@ -97,7 +97,7 @@
                 var ht = '   <div class="chat-text section-left flex" onclick="talk('+res.data.message[i].id+','+ ids+')">\n' +
                     ' <span class="char-img" style="background-image: url('+res.data.message[i].icon+')"><div id="point'+res.data.message[i].id+'" style="left:0.9rem;'+types+'position: relative;width:0.20rem;height: 0.20rem;border-radius:50%"></div></span>\n' +
                     '<div style="width: 85%"><div style="float: top;font-size:0.4rem;">'+res.data.message[i].name+
-                    '<span  class="shop-online t-26" style="float: right;margin-right: 0.15rem;font-size: 0.27rem;color: #888;">'+res.data.message[i].times+'</span></div>'+
+                    '<span id="tm'+res.data.message[i].id+'" class="shop-online t-26" style="float: right;margin-right: 0.15rem;font-size: 0.27rem;color: #888;">'+res.data.message[i].times+'</span></div>'+
                     ' <div id="fr'+res.data.message[i].id+'" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;color: #888;">'+msg+'</div></div>\n' +
                     '                </div>';
                 $(".chat-content").append(ht);
@@ -135,14 +135,18 @@
     function show(id,content,type){
         var ids ="#fr"+id;
         var point = "#point"+id;
+        var tm = "#tm"+id;
         if (type==='text'){
-            $(ids).text(content);
+            $(ids).text(content.msg);
+            $(tm).text(content.time);
             $(point).css('background-color','red')
         } else if(type==='img'){
             $(ids).text("图片消息");
+            $(tm).text(content.time);
             $(point).css('background-color','red')
         }else{
             $(ids).text("视频消息");
+            $(tm).text(content.time);
             $(point).css('background-color','red')
         }
     }

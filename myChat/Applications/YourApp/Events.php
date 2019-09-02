@@ -54,7 +54,6 @@ class Events
    public static function onMessage($client_id, $message) //此方法是处理逻辑的地方
    {
        $msg = json_decode($message,true);
-//       var_dump($msg);
        $type = $msg['type'];
         switch ($type){
             case "bind"://绑定用户id
@@ -65,12 +64,10 @@ class Events
                 $data['fromid'] = $msg['fromid'];
                 $data['toid'] = $msg['toid'];
                 $data['msg'] = $msg['msg'];
-                $data['time'] = time();
+                $data['time'] = date('Y-m-d H:i:s',time());
 //                var_dump(Gateway::isUidOnline($msg['fromid']));
                 if (Gateway::isUidOnline($msg['toid'])){//判断用户是否在线 ，在线的话向其发送消息
                     Gateway::sendToUid($msg['toid'],json_encode($data));
-                    $data['is_read'] = 2;
-                }else{
                     $data['is_read'] = 1;
                 }
                 $data['type'] = 'save'; //将消息类型改为保存，
@@ -81,7 +78,7 @@ class Events
                 $data['fromid'] = $msg['fromid'];
                 $data['toid'] = $msg['toid'];
                 $data['msg'] = $msg['msg'];
-                $data['time'] = time();
+                $data['time'] = date('Y-m-d H:i:s',time());
                 Gateway::sendToUid($msg['toid'],json_encode($data));
                 break;
             case 'video'://发送到是视频消息
@@ -89,7 +86,7 @@ class Events
                 $data['fromid'] = $msg['fromid'];
                 $data['toid'] = $msg['toid'];
                 $data['msg'] = $msg['msg'];
-                $data['time'] = time();
+                $data['time'] = date('Y-m-d H:i:s',time());
                 Gateway::sendToUid($msg['toid'],json_encode($data));
                 break;
             case 'is_line'://判断用户是否在线
